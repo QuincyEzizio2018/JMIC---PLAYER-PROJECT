@@ -30,6 +30,7 @@ main_screen.configure(bg="white")
 main_screen.resizable(False, False)
 
 
+"""Quincy"""
 def update_progress_bar_with_time():
     ...
 
@@ -46,6 +47,7 @@ def playallsong():
     ...
 
 
+"""Crown"""
 def play(event=None):
     pass
 
@@ -72,6 +74,7 @@ def show_menu():
     ...
 
 
+"""Ifeanyi"""
 def delete_song():
     ...
 
@@ -87,7 +90,12 @@ def toggle_repeat():
 def shuffle_playlist():
     ...
 
+def update_volume_and_label(x):
+    pass
 
+
+
+"""Quincy"""
 def display_album_cover(song_name):
     ...
 
@@ -106,12 +114,6 @@ def show_lyrics():
 
 def slide():
     ...
-
-
-def update_volume_and_label(x):
-    pass
-
-
 
 
 
@@ -141,8 +143,6 @@ On Red : Ifeanyi
 1. Music frame
 2. Music notebook containing "Music_cover" and "Lyrics"
 3. Music welcome label
-4. Playing music label
-5. Music time status
 """
 
 
@@ -163,6 +163,9 @@ On Black : Quincy
 11. Volume label
 12. Volume slider
 """
+#icon
+image_icon = PhotoImage(file="images/logo.png") #this is for the top logo close to JMIC - Player
+main_screen.iconphoto(False, image_icon)
 
 #Button
 shuffle = PhotoImage(file="images/40x26/shuffle.png", width=40, height=26)
