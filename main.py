@@ -16,8 +16,8 @@ screen_width = main_screen.winfo_screenwidth()
 screen_height = main_screen.winfo_screenheight()
 
 # Calculate the window size relative to the screen
-window_width = int(screen_width * 0.45)  # 80% of screen width
-window_height = int(screen_height * 0.6)  # 60% of screen height
+window_width = int(screen_width * 0.5)  # 80% of screen width
+window_height = int(screen_height * 0.65)  # 60% of screen height
 
 # Calculate the window position relative to the screen
 x_pos = int((screen_width - window_width) / 2)  # Center horizontally
@@ -116,12 +116,6 @@ def slide():
     ...
 
 
-
-
-#icon
-image_icon = PhotoImage(file="images/logo.png") #this is for the top logo close to JMIC - Player
-main_screen.iconphoto(False, image_icon)
-
 """MR CROWN"""
 """
 On Blue : Crown
@@ -144,6 +138,29 @@ On Red : Ifeanyi
 2. Music notebook containing "Music_cover" and "Lyrics"
 3. Music welcome label
 """
+#Notebook Creation for widget
+music_diplay = ttk.Notebook(main_screen) #Widgets or Notebooks
+music_diplay.place(x=275, y=0, width=400, height=400)
+
+
+music_img = PhotoImage(file="music_thumbnails/istockphoto-1192064761-612x612.png", width=400, height=400)
+music_thumbnail_widget = Label(music_diplay, image=music_img)    #widgets 1  
+
+lyrics_widget = Text(music_diplay, bg="lightblue", fg="black", font=("Arial", 10), wrap="word", width=400, height=400)#widgets 2
+
+music_diplay.add(music_thumbnail_widget, text="Music")
+music_diplay.add(lyrics_widget, text="lyrics")
+
+music_display_title = Label(music_diplay, bg="#D7D4D9", text="Welcome to JMIC-Player", font=("Helvetica", 10, "bold"))
+music_display_title.pack(pady=0, anchor="e")
+
+lyrics_widget.insert(END, "Lyrics will be displayed here...")
+lyrics_widget.config(state=DISABLED)
+
+#Lyrics Scroll Bar
+lyrics_scrollbar = Scrollbar(lyrics_widget, orient="vertical", command=lyrics_widget.yview)
+lyrics_widget.config(yscrollcommand=lyrics_scrollbar.set)
+lyrics_scrollbar.pack(side="right",fill="y")
 
 
 
