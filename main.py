@@ -295,26 +295,118 @@ def update_volume_and_label(x):
     pass
 
 
-
-"""Quincy"""
+"""Quincy, Crown and Ifeanyi"""
 def display_album_cover(song_name):
-    ...
+    try:
+        # Attempt to extract album cover image from the audio file
+        audio = MP3(song_name, ID3=ID3)
+        for tag in audio.tags.values():
+            if isinstance(tag, APIC):
+                # If an album cover image is found in the audio file, display it
+                image_data = tag.data
+                image = Image.open(io.BytesIO(image_data))
+                break
+        else:
+            # If no album cover image is found in the audio file, use a default image
+            default_image_path = get_default_image()
+            image = Image.open(default_image_path)
+    except Exception as e:
+        # If there's any error, use a default image from the music_thumbnails folder
+        default_image_path = get_default_image()
+        image = Image.open(default_image_path)
 
+    # Resize the image to fit the widget
+    image = image.resize((400, 400))
+
+    # Convert the image to a format compatible with Tkinter
+    photo = ImageTk.PhotoImage(image)
+
+    # Update the image displayed in the music_thumbnail_widget
+    music_thumbnail_widget.configure(image=photo)
+    music_thumbnail_widget.image = photo
 
 def get_default_image():
-    ...
+    # Function to get a default image from the music_thumbnails folder
+    script_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
+    thumbnails_folder = os.path.join(script_dir, "music_thumbnails")  # Construct the path to the thumbnails folder
+    if os.path.exists(thumbnails_folder):
+        # If the thumbnails folder exists, get a random image file from it
+        image_files = [os.path.join(thumbnails_folder, file) for file in os.listdir(thumbnails_folder) if file.endswith((".png", ".jpg", ".jpeg", ".gif"))]
+        if image_files:
+            return random.choice(image_files)
+    # If no default image is found, return None
+    return None
 
-
-def fetch_lyrics():
-    ...
-
-
+# Function to fetch lyrics from the API
+def fetch_lyrics(artist, title):
+    url = f"https://api.lyrics.ovh/v1/{artist}/{title}"
+    try:
+        response = requests.get(url, timeout=5)  # Set timeout to 5 seconds (adjust as needed)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        data = response.json()
+        lyrics = data.get('lyrics')
+        return lyrics
+    except(Exception, requests.exceptions.HTTPError, requests.exceptions.HTTPError) as e:
+        # Handle other unexpected exceptions
+        # print(f"An error occurred: {e}")
+        pass
+    
 def show_lyrics():
-    ...
+    try:
+        index_of_playing_song = playlist_box.curselection()[0]  # Get the index of the selected item
+        selected_song = playlist_box.get(index_of_playing_song)  # Get the selected song from the playlist
+        
+        # Check if the selected song contains the expected format "artist - title.extension"
+        if "-" in selected_song:
+            # Split the selected song into artist and title
+            artist, title_with_extension = selected_song.split("-", 1)
+            
+            # Split the title and extension
+            title, extension = os.path.splitext(title_with_extension.strip())
+            
+            # Fetch lyrics for the given artist and title
+            lyrics = fetch_lyrics(artist.strip(), title.strip())
+            
+            if lyrics:
+                # If lyrics are found, display them
+                lyrics_widget.config(state=NORMAL)  # Enable editing state
+                lyrics_widget.delete("1.0", END)  # Clear previous content
+                lyrics_widget.insert(END, lyrics)  # Insert new lyrics
+                lyrics_widget.config(state=DISABLED, cursor="hand2")  # Disable editing state
+            else:
+                # If lyrics are not found, display a message
+                lyrics_widget.config(state=NORMAL)  # Enable editing state
+                lyrics_widget.delete("1.0", END)  # Clear previous content
+                lyrics_widget.insert(END, "Lyrics not found.")  # Display "Lyrics not found"
+                lyrics_widget.config(state=DISABLED, cursor="hand2")  # Disable editing state
+        else:
+            # If the selected song doesn't contain the expected format, display a message
+            lyrics_widget.config(state=NORMAL)  # Enable editing state
+            lyrics_widget.delete("1.0", END)  # Clear previous content
+            lyrics_widget.insert(END, "Rename song to 'artist - title' to help display the lyrics.")  # Display message
+            lyrics_widget.config(state=DISABLED, cursor="hand2")  # Disable editing state
+    except IndexError:
+        # If there is an index error (e.g., no song selected), display a message
+        lyrics_widget.config(state=NORMAL)  # Enable editing state
+        lyrics_widget.delete("1.0", END)  # Clear previous content
+        lyrics_widget.insert(END, "No song selected.")  # Display "No song selected"
+        lyrics_widget.config(state=DISABLED, cursor="hand2")  # Disable editing state
+    except Exception as e:
+        # If there is any other exception, display the error message
+        lyrics_widget.config(state=NORMAL)  # Enable editing state
+        lyrics_widget.delete("1.0", END)  # Clear previous content
+        lyrics_widget.insert(END, f"An error occurred: {str(e)}")  # Display the error message
+        lyrics_widget.config(state=DISABLED, cursor="hand2")  # Disable editing state
 
+def slide(x):
+    try:
+        song = playlist_box.get(ACTIVE)
+        song_path = os.path.join(music_directory, f"{song}.mp3")
+        mixer.music.load(song_path)
+        mixer.music.play(loops=0, start=int(my_slider.get()))
 
-def slide():
-    ...
+    except pygame.error as e:
+        pass
 
 
 """MR CROWN"""
