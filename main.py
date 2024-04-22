@@ -119,17 +119,53 @@ def slide():
 """MR CROWN"""
 """
 On Blue : Crown
-1. Add Songs Label
-2. Open Folded button
-3. Pick songs button
-4. Playlist frame
-5. Playlist list box
-6. Playlist title "Song playlist"
-7. Playlist Menu "Remove Songs" which will contain "Delete song from playlist" and "Delete all songs from playlist"
-8. Scroll bar horizontal and vertical
+1. Add and Minus(remove) Menu
+2. Playlist frame
+3. Playlist list box
+4. Playlist title "Song playlist"
+5. Playlist Menu "Remove Songs" which will contain "Delete song from playlist" and "Delete all songs from playlist"
+6. Scroll bar horizontal
 """
+#Playlist Frame and title_label
+playlist_frame = Frame(main_screen, bd=2, relief=RIDGE)
+playlist_frame.place(x=15, y=0, width=250, height=400)
+
+playlist_title = Label(playlist_frame, text="Songs Playlist", font=("Helvetica", 10, "bold"))
+playlist_title.pack( anchor="w")
+
+# Create menu
+my_menu = Menu(main_screen)
+main_screen.config(menu=my_menu)
 
 
+# Create the Add Songs menu
+add_song_menu = Menu(playlist_frame, tearoff=0)
+add_song_menu.add_command(label="Add Songs From Folder", command=add_songs_from_folder)
+add_song_menu.add_command(label="Pick Out Tracks", command=add_selected_songs)
+
+# Create a Menubutton to display the Remove Songs menu
+add_song_button = Menubutton(text="+", font=("ariel", 15, "bold"), fg="black", borderwidth=-5, menu=add_song_menu)
+add_song_button.place(x=200, y=3)
+add_song_button.bind("<Button-1>", lambda event: show_add())   # Bind the show_remove function to the button click event
+
+# Create the Remove Songs menu
+remove_song_menu = Menu(playlist_frame, tearoff=0)
+remove_song_menu.add_command(label="Delete Selected Song", command=delete_song)
+remove_song_menu.add_command(label="Delete All Songs", command=delete_all_songs)
+
+# Create a Menubutton to display the Remove Songs menu
+remove_songs_button = Menubutton(text="~", font=("ariel", 15, "bold"), fg="black", borderwidth=-5, menu=remove_song_menu)
+remove_songs_button.place(x=235, y=3)
+remove_songs_button.bind("<Button-1>", lambda event: show_remove())   # Bind the show_remove function to the button click event
+
+# Create Playlist Box
+#Playlist Scroll Bar
+scroll = Scrollbar(playlist_frame)
+playlist_box = Listbox(playlist_frame, width=100, font= ("ariel", 10), bg="#D7D4D9", fg="black", selectbackground="lightblue", cursor="hand2", bd=0, yscrollcommand=scroll.set)
+scroll.config(command=playlist_box.yview)
+scroll.pack(side=RIGHT, fill=Y)
+playlist_box.pack(side=LEFT, fill=BOTH)
+playlist_box.bind("<Double-1>", lambda event: play()) # Bind double-click event to the playlist
 
 """MR IFEANYI"""
 """
