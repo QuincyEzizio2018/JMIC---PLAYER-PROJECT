@@ -31,20 +31,144 @@ main_screen.resizable(False, False)
 
 
 """Quincy"""
+# Initialize pygame Mixer
+mixer.init()
+
+# Define the directory path
+music_directory = os.path.join(os.path.expanduser('~'), 'Music')
+stopped = False
+repeat_enabled = False
+
+# Grab Song Length Time Info
 def update_progress_bar_with_time():
-    ...
+    global stopped
+    if stopped:
+        return 
+
+    current_time = mixer.music.get_pos() / 1000 
+    converted_current_time = time.strftime('%M:%S', time.gmtime(current_time))
+
+    song = playlist_box.get(ACTIVE)
+    song_path = os.path.join(music_directory, f"{song}.mp3")
+    song_mut = MP3(song_path)
+    global song_length
+    song_length = song_mut.info.length
+    converted_song_length = time.strftime('%M:%S', time.gmtime(song_length))
+
+    current_time += 1
+    
+    if int(my_slider.get()) == int(song_length):
+        time_status_bar.config(text=f'{converted_song_length}  of  {converted_song_length}  ')
+    elif paused:
+        pass
+    elif int(my_slider.get()) == int(current_time):
+        slider_position = int(song_length)
+        my_slider.config(to=slider_position, value=int(current_time))
+    else:
+        slider_position = int(song_length)
+        my_slider.config(to=slider_position, value=int(my_slider.get()))
+        converted_current_time = time.strftime('%M:%S', time.gmtime(int(my_slider.get())))
+        time_status_bar1.config(text=f'{converted_current_time}')
+        time_status_bar.config(text=f'{converted_song_length}')
+
+        next_time = int(my_slider.get()) + 1
+        my_slider.config(value=next_time)
+
+    if repeat_enabled and int(my_slider.get()) >= int(song_length):
+        # If repeat is enabled and the slider position is greater than or equal to the song length,
+        # it means the song has finished playing, so reset the slider to 0
+        my_slider.set(0)
+
+    time_status_bar.after(1000, update_progress_bar_with_time)
 
 
+# Add Song Function
 def add_songs_from_folder():
-    pass
+    try:
+        folder_path = filedialog.askdirectory(initialdir='audio/', title="Choose A Folder")
+        if folder_path:
+            # List of supported file extensions
+            supported_extensions = (".mp3", ".wav", ".m4a", ".flac", ".wma", ".aac", ".opus", ".raw", ".webm")
+            
+            # Get all files in the folder with supported extensions
+            songs = [file for file in os.listdir(folder_path) if os.path.splitext(file)[1].lower() in supported_extensions]
+            
+            # Add each song to the playlist
+            for song in songs:
+                song = os.path.splitext(song)[0]  # Remove the file extension
+                playlist_box.insert(END, song)
+        update_progress_bar_with_time()
+        playallsong()
+    except() as e:
+        pass
 
 
+# Add many songs to playlist
 def add_selected_songs():
-    pass
+    songs = filedialog.askopenfilenames(initialdir='audio/', title="Choose Songs", filetypes=(
+        ("MP3 Files", "*.mp3"),
+        ("WAV Files", "*.wav"),
+        ("M4A Files", "*.m4a"),
+        ("FLAC Files", "*.flac"),
+        ("WMA Files", "*.wma"),
+        ("AAC Files", "*.aac"),
+        ("OPUS Files", "*.opus"),
+        ("RAW Files", "*.raw"),
+        ("WEBM Files", "*.webm")
+    ))
+    
+    # Add each selected song to the playlist
+    for song in songs:
+        song = os.path.basename(song)
+        song = os.path.splitext(song)[0]  # Remove the file extension
+        playlist_box.insert(END, song)
 
 
+def show_add():
+    add_song_menu.post(add_song_button.winfo_rootx(), add_song_button.winfo_rooty() + add_song_button.winfo_height())
+
+
+# Define the playallsong function
 def playallsong():
-    ...
+    global paused
+    global stopped
+    global interrupted_index
+    
+    # Check if there are songs in the playlist
+    if playlist_box.size() > 0:
+        # Reset the paused and stopped flags
+        paused = False
+        stopped = False
+        # Reset the interrupted index
+        interrupted_index = None
+        
+        # Iterate over the playlist and play each song
+        for i in range(playlist_box.size()):
+            # Select the current song from the playlist
+            playlist_box.selection_clear(0, END)  # Clear current selection
+            playlist_box.selection_set(i)  # Set selection to current index
+            playlist_box.activate(i)  # Activate (highlight) current index
+            playlist_box.see(i)  # Scroll to make the current index visible
+            
+            time_status_bar.config(text='')
+            my_slider.config(value=0)
+            # Play the current song
+            play()
+            
+            # Check if music is playing
+            while mixer.music.get_busy():
+                main_screen.update()
+                time.sleep(0.1)
+                
+            # Check if the play button was clicked to pause playback
+            if paused or stopped:
+                # If paused or stopped, break the loop
+                break
+
+        # Reset interrupted index when all songs have been played
+        interrupted_index = None
+    else:
+        print("No songs in the playlist.")
 
 
 """Crown"""
