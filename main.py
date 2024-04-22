@@ -172,31 +172,108 @@ def playallsong():
 
 
 """Crown"""
+# Play selected song
 def play(event=None):
-    pass
+    global stopped
+    if playlist_box.size() == 0:
+        messagebox.showinfo("Empty Playlist", "The playlist is empty.")
+    else:
+        if len(playlist_box.curselection()) == 0:
+            # If no song is selected, highlight the first song
+            playlist_box.selection_set(0)
+        # Set Stopped Variable To False So Song Can Play
+        stopped = False
+        song = playlist_box.get(ACTIVE)
+        music.config(text=song)
+        song = os.path.join(music_directory, f"{song}.mp3")
+        mixer.music.load(song)
+        mixer.music.play(loops=0)
+
+
+        # Set looping behavior
+        if repeat_enabled:
+            time_status_bar.config(text='')
+            my_slider.config(value=0)
+            mixer.music.play(loops=-1)  # Loop indefinitely
+        else:
+            mixer.music.play(loops=0)   # Do not loop
+            time_status_bar.config(text='')
+            my_slider.config(value=0)
+            
+        # Call the update_progress_bar_with_time function to get song length
+        update_progress_bar_with_time()
+        display_album_cover(song)
+        show_lyrics()  # Call show_lyrics to display lyrics for the currently playing song
 
 
 # Create Global Pause Variable
 global paused
 paused = False
+# Pause and Unpause The Current Song
 def pause(is_paused):
-    ...
+    global paused
+    paused = is_paused
+    if paused:
+        mixer.music.unpause()
+        paused = False
+    else:
+        mixer.music.pause()
+        paused = True
 
+
+# Stop playing current song
 def stop():
-    ...
+    time_status_bar.config(text='')
+    my_slider.config(value=0)
+    mixer.music.stop()
+    playlist_box.selection_clear(ACTIVE)
+    global stopped
+    stopped = True 
 
 
+# Play The Next Song in the playlist
 def next_song():
-    pass
+    try:
+        time_status_bar.config(text='')
+        my_slider.config(value=0)
+        next_one = playlist_box.curselection() 
+        next_one = next_one[0]+1
+        song = playlist_box.get(next_one)
+        music.config(text=song)
+        song_path = os.path.join(music_directory, f"{song}.mp3")
+        mixer.music.load(song_path)
+        mixer.music.play(loops=0)
+        playlist_box.selection_clear(0, END)
+        playlist_box.activate(next_one)
+        playlist_box.selection_set(next_one, last=None)
+        play()  # Call play function to update UI
+    except(IndexError):
+        pass
+    except pygame.error as e:
+         if "No such file or directory" in str(e):
+              pass
 
-
+# Play Previous Song In Playlist
 def previous_song():
-    pass
-
-
-def show_menu():
-    ...
-
+    try:
+        time_status_bar.config(text='')
+        my_slider.config(value=0)
+        next_one = playlist_box.curselection() 
+        next_one = next_one[0]-1
+        song = playlist_box.get(next_one)
+        music.config(text=song)
+        song_path = os.path.join(music_directory, f"{song}.mp3")
+        mixer.music.load(song_path)
+        mixer.music.play(loops=0)
+        playlist_box.selection_clear(0, END)
+        playlist_box.activate(next_one)
+        playlist_box.selection_set(next_one, last=None)
+        play()  # Call play function to update UI
+    except(IndexError):
+        pass
+    except pygame.error as e:
+         if "No such file or directory" in str(e):
+              pass
 
 """Ifeanyi"""
 def delete_song():
