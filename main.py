@@ -471,6 +471,8 @@ scroll.pack(side=RIGHT, fill=Y)
 playlist_box.pack(side=LEFT, fill=BOTH)
 playlist_box.bind("<Double-1>", lambda event: play()) # Bind double-click event to the playlist
 
+
+
 """MR IFEANYI"""
 """
 On Red : Ifeanyi
@@ -504,10 +506,11 @@ lyrics_scrollbar.pack(side="right",fill="y")
 
 
 
+
 """MR QUINCY"""
 """
 On Black : Quincy
-1. Music label
+1. Music icon and label
 2. Progress bar slider
 3. Music time status
 4. Shuffle button
@@ -521,29 +524,29 @@ On Black : Quincy
 12. Volume slider
 """
 #icon
-image_icon = PhotoImage(file="images/logo.png") #this is for the top logo close to JMIC - Player
+image_icon = PhotoImage(file=resource_path("logo.png")) #this is for the top logo close to JMIC - Player
 main_screen.iconphoto(False, image_icon)
 
 #Button
-shuffle = PhotoImage(file="images/40x26/shuffle.png", width=40, height=26)
+shuffle = PhotoImage(file=resource_path("images/40x26/shuffle.png"))
 Button(main_screen, text="", compound=LEFT, image=shuffle, fg= "white", bg="white", bd=0, font=("ariel", 10, "bold"), command=shuffle_playlist).place(x=235, y=465)
 
-previous_button = PhotoImage(file="images/40x40/previous.png", width=20, height=20)
+previous_button = PhotoImage(file=resource_path("images/40x40/previous.png"))
 Button(main_screen, text="", compound=LEFT, image=previous_button, bd=0, fg= "white", bg="white", command=previous_song).place(x=260, y=460)
 
-pause_button = PhotoImage(file="images/40x40/pause.png", width=20, height=20)
+pause_button = PhotoImage(file=resource_path("images/40x40/pause.png"))
 Button(main_screen, text="", compound=LEFT, image=pause_button, bd=0, fg= "white", bg="white", command=lambda: pause(paused)).place(x=290, y=460)
 
-play_button = PhotoImage(file="images/40x40/play.png", width=40, height=40)
+play_button = PhotoImage(file=resource_path("images/40x40/play.png"))
 Button(main_screen, text="", compound=LEFT, image=play_button, bd=0, fg= "white", bg="white", command=play).place(x=320, y=450)
 
-stop_button = PhotoImage(file="images/40x40/stop.png", width=20, height=20)
+stop_button = PhotoImage(file=resource_path("images/40x40/stop.png"))
 Button(main_screen, text="", compound=LEFT, image=stop_button, bd=0, fg= "white", bg="white", command=stop).place(x=370, y=460)
 
-next_button = PhotoImage(file="images/40x40/next.png", width=20, height=20)
+next_button = PhotoImage(file=resource_path("images/40x40/next.png"))
 Button(main_screen, text="", compound=LEFT, image=next_button, bd=0, fg= "white", bg="white", command=next_song).place(x=400, y=460)
 
-repeat_img = PhotoImage(file="images/40x26/repeat.png", width=40, height=23)
+repeat_img = PhotoImage(file=resource_path("images/40x26/repeat.png"))
 repeat = Button(main_screen, text="", bg="white", bd=0, image=repeat_img, compound=LEFT, fg= "white", font=("ariel", 10, "bold"), command=toggle_repeat)
 repeat.place(x=430, y=465)
 
@@ -579,6 +582,8 @@ style.configure("TScale", troughcolor="light blue", background="blue",
                 highlightcolor="sea green", slidercolor=[("active", "light green")], 
                 gripcount=0, bordercolor="light blue", relief="flat", sliderthickness = 15)
 
+# Bind the closing event of the window to the function on_closing
+main_screen.protocol("WM_DELETE_WINDOW", on_closing)
 
 
 main_screen.mainloop()
