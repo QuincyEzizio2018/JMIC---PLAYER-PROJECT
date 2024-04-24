@@ -3,42 +3,31 @@ from tkinter import ttk, filedialog, messagebox
 from pygame import mixer
 import customtkinter
 from PIL import Image, ImageTk
-import os
-import requests, time, random, io, pygame
+import os, sys
+import requests, time, random, io, pygame, threading
 from mutagen.mp3 import MP3
 from mutagen.id3 import ID3, APIC
 
 main_screen = Tk()
 main_screen.title("JMIC Player")
-
-# Get the screen width and height
-screen_width = main_screen.winfo_screenwidth()
-screen_height = main_screen.winfo_screenheight()
-
-# Calculate the window size relative to the screen
-window_width = int(screen_width * 0.5)  # 80% of screen width
-window_height = int(screen_height * 0.65)  # 60% of screen height
-
-# Calculate the window position relative to the screen
-x_pos = int((screen_width - window_width) / 2)  # Center horizontally
-y_pos = int((screen_height - window_height) / 2)  # Center vertically
-
-# Set window size and position
-main_screen.geometry(f"{window_width}x{window_height}+{x_pos}+{y_pos}")
-
+main_screen.geometry("700x500+500+100")
 main_screen.configure(bg="white")
 main_screen.resizable(False, False)
+# messagebox.showinfo("MusicPlayer", "To play some music, first click the plus then navigate to a folder on your computer which has music in it then click open./n/nThen just click one of the songs from the lsit below and click play")
 
 
-"""Quincy"""
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
 # Initialize pygame Mixer
 mixer.init()
 
-# Define the directory path
-music_directory = os.path.join(os.path.expanduser('~'), 'Music')
-stopped = False
-repeat_enabled = False
 
+stopped = False
 # Grab Song Length Time Info
 def update_progress_bar_with_time():
     global stopped
@@ -49,7 +38,7 @@ def update_progress_bar_with_time():
     converted_current_time = time.strftime('%M:%S', time.gmtime(current_time))
 
     song = playlist_box.get(ACTIVE)
-    song_path = os.path.join(music_directory, f"{song}.mp3")
+    song_path = os.path.join(folder_path, f"{song}.mp3")
     song_mut = MP3(song_path)
     global song_length
     song_length = song_mut.info.length
@@ -58,7 +47,7 @@ def update_progress_bar_with_time():
     current_time += 1
     
     if int(my_slider.get()) == int(song_length):
-        time_status_bar.config(text=f'{converted_song_length}  of  {converted_song_length}  ')
+        time_status_bar.config(text=f'{converted_song_length} ')
     elif paused:
         pass
     elif int(my_slider.get()) == int(current_time):
@@ -82,46 +71,63 @@ def update_progress_bar_with_time():
     time_status_bar.after(1000, update_progress_bar_with_time)
 
 
+# Define the directory path
+folder_path =""
 # Add Song Function
-def add_songs_from_folder():
-    try:
-        folder_path = filedialog.askdirectory(initialdir='audio/', title="Choose A Folder")
-        if folder_path:
-            # List of supported file extensions
-            supported_extensions = (".mp3", ".wav", ".m4a", ".flac", ".wma", ".aac", ".opus", ".raw", ".webm")
-            
-            # Get all files in the folder with supported extensions
-            songs = [file for file in os.listdir(folder_path) if os.path.splitext(file)[1].lower() in supported_extensions]
-            
-            # Add each song to the playlist
-            for song in songs:
-                song = os.path.splitext(song)[0]  # Remove the file extension
-                playlist_box.insert(END, song)
-        update_progress_bar_with_time()
-        playallsong()
-    except() as e:
-        pass
-
-
-# Add many songs to playlist
 def add_selected_songs():
-    songs = filedialog.askopenfilenames(initialdir='audio/', title="Choose Songs", filetypes=(
-        ("MP3 Files", "*.mp3"),
-        ("WAV Files", "*.wav"),
-        ("M4A Files", "*.m4a"),
-        ("FLAC Files", "*.flac"),
-        ("WMA Files", "*.wma"),
-        ("AAC Files", "*.aac"),
-        ("OPUS Files", "*.opus"),
-        ("RAW Files", "*.raw"),
-        ("WEBM Files", "*.webm")
-    ))
-    
-    # Add each selected song to the playlist
-    for song in songs:
-        song = os.path.basename(song)
-        song = os.path.splitext(song)[0]  # Remove the file extension
-        playlist_box.insert(END, song)
+    global folder_path
+    try:
+        # Open a file dialog to select a directory (folder)
+        folder_path = filedialog.askdirectory()
+        
+        if folder_path:
+            # Start a new thread to load files
+            threading.Thread(target=load_files_from_directory, args=(folder_path,)).start()
+           
+    except TypeError:
+        messagebox.showinfo("Error", "Choose a folder to add songs from")
+
+def load_files_from_directory(folder_path):
+    try:
+        # Open a file dialog to select individual songs within the selected directory
+        selected_files = filedialog.askopenfilenames(initialdir=folder_path, title="Select Music Files", filetypes=(("Audio Files", "*.mp3;*.wav;*.m4a;*.flac;*.wma;*.aac;*.opus;*.raw;*.webm"), ("All Files", "*.*")))
+        
+        # Add each selected song to the playlist
+        for file in selected_files:
+            # Get the file name without extension
+            song_name = os.path.splitext(os.path.basename(file))[0]
+            playlist_box.insert(END, song_name)
+        playallsong() 
+    except Exception as e:
+        messagebox.showinfo("Error", f"An error occurred: {e}")
+
+def add_songs_from_folder():
+    global folder_path
+    try:
+        folder_path = filedialog.askdirectory()
+        if folder_path:
+            # Start a new thread to load files
+            threading.Thread(target=load_files_from_folder, args=(folder_path,)).start()
+            
+    except TypeError:
+        messagebox.showinfo("Error", "Choose a folder to add songs from")
+
+def load_files_from_folder(folder_path):
+    try:
+        # List of supported file extensions
+        supported_extensions = (".mp3", ".wav", ".m4a", ".flac", ".wma", ".aac", ".opus", ".raw", ".webm")
+        
+        # Get all files in the folder with supported extensions
+        songs = [file for file in os.listdir(folder_path) if os.path.splitext(file)[1].lower() in supported_extensions]
+        
+        # Add each song to the playlist
+        for song in songs:
+            song_name, song_extension = os.path.splitext(song)
+            playlist_box.insert(END, song_name)
+        playallsong()
+    except Exception as e:
+        messagebox.showinfo("Error", f"An error occurred: {e}")
+
 
 
 def show_add():
@@ -169,6 +175,11 @@ def playallsong():
         interrupted_index = None
     else:
         print("No songs in the playlist.")
+
+def on_closing():
+    # Function to handle window closing event
+    stop()  # Stop the music playback
+    main_screen.destroy()  # Close the window
 
 
 """Crown"""
