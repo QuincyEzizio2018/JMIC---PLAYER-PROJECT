@@ -16,6 +16,12 @@ main_screen.resizable(False, False)
 # messagebox.showinfo("MusicPlayer", "To play some music, first click the plus then navigate to a folder on your computer which has music in it then click open./n/nThen just click one of the songs from the lsit below and click play")
 
 
+"""Quincy"""
+def on_closing():
+    # Function to handle window closing event
+    stop()  # Stop the music playback
+    main_screen.destroy()  # Close the window
+
 def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
@@ -26,7 +32,55 @@ def resource_path(relative_path):
 # Initialize pygame Mixer
 mixer.init()
 
+def playallfromcurrentsong():
+    global paused, stopped
+    
+    # Check if there are songs in the playlist
+    if playlist_box.size() > 0:
+        # Check if any item is selected in the playlist
+        if playlist_box.curselection():
+            # Get the index of the currently playing song
+            current_index = playlist_box.curselection()[0]
+            
+            # Reset the paused and stopped flags
+            paused = False
+            stopped = False
+            
+            # Iterate over the playlist starting from the next index after the currently playing song
+            for i in range(current_index, playlist_box.size()):
+                # Check if the playback was paused or stopped
+                if paused or stopped:
+                    break
+                
+                # Select the current song from the playlist
+                playlist_box.selection_clear(0, END)  # Clear current selection
+                playlist_box.selection_set(i)  # Set selection to current index
+                playlist_box.activate(i)  # Activate (highlight) current index
+                playlist_box.see(i)  # Scroll to make the current index visible
+                
+                time_status_bar.config(text='')
+                my_slider.config(value=0)
+                # Play the current song
+                play()
+                
+                # Check if music is playing
+                while mixer.music.get_busy():
+                    main_screen.update()
+                    time.sleep(0.1)
+                    
+                # Check if the play button was clicked to pause playback
+                if paused or stopped:
+                    # If paused or stopped, break the loop
+                    break
+        else:
+            # If no item is selected in the playlist, select the first item and play it
+            playlist_box.select_set(0)
+            play()
+            
+    else:
+        messagebox.showinfo("No songs in the playlist.")
 
+        
 stopped = False
 # Grab Song Length Time Info
 def update_progress_bar_with_time():
@@ -97,7 +151,7 @@ def load_files_from_directory(folder_path):
             # Get the file name without extension
             song_name = os.path.splitext(os.path.basename(file))[0]
             playlist_box.insert(END, song_name)
-        playallsong() 
+
     except Exception as e:
         messagebox.showinfo("Error", f"An error occurred: {e}")
 
@@ -124,62 +178,12 @@ def load_files_from_folder(folder_path):
         for song in songs:
             song_name, song_extension = os.path.splitext(song)
             playlist_box.insert(END, song_name)
-        playallsong()
+
     except Exception as e:
         messagebox.showinfo("Error", f"An error occurred: {e}")
 
-
-
 def show_add():
     add_song_menu.post(add_song_button.winfo_rootx(), add_song_button.winfo_rooty() + add_song_button.winfo_height())
-
-
-# Define the playallsong function
-def playallsong():
-    global paused
-    global stopped
-    global interrupted_index
-    
-    # Check if there are songs in the playlist
-    if playlist_box.size() > 0:
-        # Reset the paused and stopped flags
-        paused = False
-        stopped = False
-        # Reset the interrupted index
-        interrupted_index = None
-        
-        # Iterate over the playlist and play each song
-        for i in range(playlist_box.size()):
-            # Select the current song from the playlist
-            playlist_box.selection_clear(0, END)  # Clear current selection
-            playlist_box.selection_set(i)  # Set selection to current index
-            playlist_box.activate(i)  # Activate (highlight) current index
-            playlist_box.see(i)  # Scroll to make the current index visible
-            
-            time_status_bar.config(text='')
-            my_slider.config(value=0)
-            # Play the current song
-            play()
-            
-            # Check if music is playing
-            while mixer.music.get_busy():
-                main_screen.update()
-                time.sleep(0.1)
-                
-            # Check if the play button was clicked to pause playback
-            if paused or stopped:
-                # If paused or stopped, break the loop
-                break
-
-        # Reset interrupted index when all songs have been played
-        interrupted_index = None
-    else:
-        print("No songs in the playlist.")
-
-def on_closing():
-    # Function to handle window closing event
-    stop()  # Stop the music playback
-    main_screen.destroy()  # Close the window
 
 
 """Crown"""
