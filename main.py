@@ -510,7 +510,6 @@ lyrics_scrollbar.pack(side="right",fill="y")
 
 
 
-
 """MR QUINCY"""
 """
 On Black : Quincy
@@ -542,7 +541,7 @@ pause_button = PhotoImage(file=resource_path("images/40x40/pause.png"))
 Button(main_screen, text="", compound=LEFT, image=pause_button, bd=0, fg= "white", bg="white", command=lambda: pause(paused)).place(x=290, y=460)
 
 play_button = PhotoImage(file=resource_path("images/40x40/play.png"))
-Button(main_screen, text="", compound=LEFT, image=play_button, bd=0, fg= "white", bg="white", command=play).place(x=320, y=450)
+Button(main_screen, text="", compound=LEFT, image=play_button, bd=0, fg= "white", bg="white", command=lambda: playallfromcurrentsong).place(x=320, y=450)
 
 stop_button = PhotoImage(file=resource_path("images/40x40/stop.png"))
 Button(main_screen, text="", compound=LEFT, image=stop_button, bd=0, fg= "white", bg="white", command=stop).place(x=370, y=460)
