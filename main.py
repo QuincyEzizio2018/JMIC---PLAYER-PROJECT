@@ -291,23 +291,73 @@ def previous_song():
               pass
 
 """Ifeanyi"""
+def show_remove():
+    remove_song_menu.post(remove_songs_button.winfo_rootx(), remove_songs_button.winfo_rooty() + remove_songs_button.winfo_height())
+
+# Delete A Song
 def delete_song():
-    ...
+    stop()
+    playlist_box.delete(ANCHOR)
+    mixer.music.stop()
 
 
+# Delete All Songs from Playlist
 def delete_all_songs():
-    ...
+    stop()
+    playlist_box.delete(0, END)
+    mixer.music.stop()
 
 
+repeat_enabled = False
+# Define the toggle_repeat function
 def toggle_repeat():
-    ...
+    global repeat_enabled
+    repeat_enabled = not repeat_enabled
+    if repeat_enabled:
+        # Change border color to yellow when enabled
+        repeat.config(borderwidth=1, background="green")
+        play()
+    else:
+        # Restore default border color when disabled
+        repeat.config(borderwidth=0, background="white")
 
 
+# Function to shuffle the playlist
 def shuffle_playlist():
-    ...
+    global stopped
+    stopped = True  # Stop the current song if playing
+    playlist_items = list(playlist_box.get(0, END))     # Get the current playlist items
+    
+    random.shuffle(playlist_items)  # Shuffle the playlist items
+    playlist_box.delete(0, END)  # Clear the current playlist
+    
+    # Repopulate the playlist with shuffled items
+    for item in playlist_items:
+        playlist_box.insert(END, item)
+    
+    # Call playallfromcurrentsong to play the rest of the songs sequentially
+    playallfromcurrentsong()
+
+    
 
 def update_volume_and_label(x):
-    pass
+    x = max(0, min(100, x))   # Ensure x is within the range [0, 100]
+    volume = x / 100         # Calculate the volume based on the percentage
+    mixer.music.set_volume(volume)   # Update the volume
+    
+    volume_int = int(x)     # Update the volume label
+    volume_label.config(text=f"Volume: {volume_int}")
+    
+
+def slide(x):
+    try:
+        song = playlist_box.get(ACTIVE)
+        song_path = os.path.join(folder_path, f"{song}.mp3")
+        mixer.music.load(song_path)
+        mixer.music.play(loops=0, start=int(my_slider.get()))
+
+    except pygame.error as e:
+            pass
 
 
 """Quincy, Crown and Ifeanyi"""
@@ -489,10 +539,10 @@ music_diplay = ttk.Notebook(main_screen) #Widgets or Notebooks
 music_diplay.place(x=275, y=0, width=400, height=400)
 
 
-music_img = PhotoImage(file="music_thumbnails/istockphoto-1192064761-612x612.png", width=400, height=400)
+music_img = PhotoImage(file=resource_path("Group 8 (1).png"), width=400, height=400)
 music_thumbnail_widget = Label(music_diplay, image=music_img)    #widgets 1  
 
-lyrics_widget = Text(music_diplay, bg="lightblue", fg="black", font=("Arial", 10), wrap="word", width=400, height=400)#widgets 2
+lyrics_widget = Text(music_diplay, bg="lightblue", fg="black", font=("Arial", 9), wrap="word",  width=400, height=400)#widgets 2
 
 music_diplay.add(music_thumbnail_widget, text="Music")
 music_diplay.add(lyrics_widget, text="lyrics")
@@ -506,9 +556,7 @@ lyrics_widget.config(state=DISABLED)
 #Lyrics Scroll Bar
 lyrics_scrollbar = Scrollbar(lyrics_widget, orient="vertical", command=lyrics_widget.yview)
 lyrics_widget.config(yscrollcommand=lyrics_scrollbar.set)
-lyrics_scrollbar.pack(side="right",fill="y")
-
-
+lyrics_scrollbar.pack(side="right", fill="y")
 
 """MR QUINCY"""
 """
