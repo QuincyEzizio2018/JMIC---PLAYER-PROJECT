@@ -189,21 +189,20 @@ def show_add():
 """Crown"""
 # Play selected song
 def play(event=None):
-    global stopped
+    global stopped, folder_path
     if playlist_box.size() == 0:
         messagebox.showinfo("Empty Playlist", "The playlist is empty.")
     else:
         if len(playlist_box.curselection()) == 0:
             # If no song is selected, highlight the first song
             playlist_box.selection_set(0)
-        # Set Stopped Variable To False So Song Can Play
+        # Set Stopped Variable To False Song Can Play
         stopped = False
         song = playlist_box.get(ACTIVE)
         music.config(text=song)
-        song = os.path.join(music_directory, f"{song}.mp3")
+        song = os.path.join(folder_path, f"{song}.mp3")
         mixer.music.load(song)
         mixer.music.play(loops=0)
-
 
         # Set looping behavior
         if repeat_enabled:
@@ -214,11 +213,16 @@ def play(event=None):
             mixer.music.play(loops=0)   # Do not loop
             time_status_bar.config(text='')
             my_slider.config(value=0)
-            
+
         # Call the update_progress_bar_with_time function to get song length
         update_progress_bar_with_time()
         display_album_cover(song)
         show_lyrics()  # Call show_lyrics to display lyrics for the currently playing song
+
+        # Check if music is playing
+        while mixer.music.get_busy():
+            main_screen.update()
+            time.sleep(0.1)
 
 
 # Create Global Pause Variable
@@ -255,38 +259,39 @@ def next_song():
         next_one = next_one[0]+1
         song = playlist_box.get(next_one)
         music.config(text=song)
-        song_path = os.path.join(music_directory, f"{song}.mp3")
+        song_path = os.path.join(folder_path, f"{song}.mp3")
         mixer.music.load(song_path)
         mixer.music.play(loops=0)
         playlist_box.selection_clear(0, END)
         playlist_box.activate(next_one)
         playlist_box.selection_set(next_one, last=None)
-        play()  # Call play function to update UI
+        playallfromcurrentsong()
     except(IndexError):
         pass
     except pygame.error as e:
          if "No such file or directory" in str(e):
               pass
 
+
 # Play Previous Song In Playlist
 def previous_song():
     try:
         time_status_bar.config(text='')
         my_slider.config(value=0)
-        next_one = playlist_box.curselection() 
-        next_one = next_one[0]-1
-        song = playlist_box.get(next_one)
+        next_one = playlist_box.curselection()[0] 
+        previous_one = next_one - 1  # Get the index of the previous song
+        if previous_one < 0:
+            previous_one = playlist_box.size() - 1  # Wrap around to the last song if at the beginning of the playlist
+        song = playlist_box.get(previous_one)
         music.config(text=song)
-        song_path = os.path.join(music_directory, f"{song}.mp3")
+        song_path = os.path.join(folder_path, f"{song}.mp3")
         mixer.music.load(song_path)
         mixer.music.play(loops=0)
         playlist_box.selection_clear(0, END)
-        playlist_box.activate(next_one)
-        playlist_box.selection_set(next_one, last=None)
-        play()  # Call play function to update UI
-    except(IndexError):
-        pass
-    except pygame.error as e:
+        playlist_box.activate(previous_one)
+        playlist_box.selection_set(previous_one, last=None)
+        playallfromcurrentsong()  # Call playallfromcurrentsong after playing the previous song
+    except (IndexError, pygame.error) as e:
          if "No such file or directory" in str(e):
               pass
 
@@ -519,12 +524,11 @@ remove_songs_button.bind("<Button-1>", lambda event: show_remove())   # Bind the
 # Create Playlist Box
 #Playlist Scroll Bar
 scroll = Scrollbar(playlist_frame)
-playlist_box = Listbox(playlist_frame, width=100, font= ("ariel", 10), bg="#D7D4D9", fg="black", selectbackground="lightblue", cursor="hand2", bd=0, yscrollcommand=scroll.set)
+playlist_box = Listbox(playlist_frame, width=100, font= ("ariel", 8, "bold"), bg="#D7D4D9", fg="black", selectbackground="lightblue", cursor="hand2", bd=0, yscrollcommand=scroll.set)
 scroll.config(command=playlist_box.yview)
 scroll.pack(side=RIGHT, fill=Y)
 playlist_box.pack(side=LEFT, fill=BOTH)
-playlist_box.bind("<Double-1>", lambda event: play()) # Bind double-click event to the playlist
-
+playlist_box.bind("<Double-1>", lambda event: playallfromcurrentsong()) # Bind double-click event to the playlist
 
 
 """MR IFEANYI"""
