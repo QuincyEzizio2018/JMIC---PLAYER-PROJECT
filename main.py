@@ -13,7 +13,7 @@ main_screen.title("JMIC Player")
 main_screen.geometry("700x500+500+100")
 main_screen.configure(bg="white")
 main_screen.resizable(False, False)
-# messagebox.showinfo("MusicPlayer", "To play some music, first click the plus then navigate to a folder on your computer which has music in it then click open./n/nThen just click one of the songs from the lsit below and click play")
+# messagebox.showinfo("MusicPlayer", "To play some music, first click the plus then navigate to a folder on your computer which has music in it then click open./n/nThen just double click one of the songs on the playlist or click on the song and click play")
 
 
 """Quincy"""
@@ -35,6 +35,10 @@ mixer.init()
 def playallfromcurrentsong():
     global paused, stopped
     
+    if playlist_box.size() == 0:
+        messagebox.showinfo("Empty Playlist", "The playlist is empty.")
+    
+
     # Check if there are songs in the playlist
     if playlist_box.size() > 0:
         # Check if any item is selected in the playlist
@@ -75,10 +79,10 @@ def playallfromcurrentsong():
         else:
             # If no item is selected in the playlist, select the first item and play it
             playlist_box.select_set(0)
-            play()
-            
+            play()      
     else:
-        messagebox.showinfo("No songs in the playlist.")
+        # messagebox.showinfo("No songs in the playlist.")
+        pass
 
         
 stopped = False
@@ -232,6 +236,9 @@ paused = False
 def pause(is_paused):
     global paused
     paused = is_paused
+    if playlist_box.size() == 0:
+        messagebox.showinfo("Empty Playlist", "No Current Playing Song")
+    
     if paused:
         mixer.music.unpause()
         paused = False
@@ -253,6 +260,9 @@ def stop():
 # Play The Next Song in the playlist
 def next_song():
     try:
+        if playlist_box.size() == 0:
+            messagebox.showinfo("Empty Playlist", "The playlist is empty")
+    
         time_status_bar.config(text='')
         my_slider.config(value=0)
         next_one = playlist_box.curselection() 
@@ -276,6 +286,9 @@ def next_song():
 # Play Previous Song In Playlist
 def previous_song():
     try:
+        if playlist_box.size() == 0:
+            messagebox.showinfo("Empty Playlist", "The playlist is empty")
+    
         time_status_bar.config(text='')
         my_slider.config(value=0)
         next_one = playlist_box.curselection()[0] 
@@ -301,6 +314,9 @@ def show_remove():
 
 # Delete A Song
 def delete_song():
+    if playlist_box.size() == 0:
+            messagebox.showinfo("Empty Playlist", "The playlist is empty")
+    
     stop()
     playlist_box.delete(ANCHOR)
     mixer.music.stop()
@@ -308,6 +324,9 @@ def delete_song():
 
 # Delete All Songs from Playlist
 def delete_all_songs():
+    if playlist_box.size() == 0:
+            messagebox.showinfo("Empty Playlist", "The playlist is empty")
+    
     stop()
     playlist_box.delete(0, END)
     mixer.music.stop()
@@ -379,11 +398,11 @@ def display_album_cover(song_name):
         else:
             # If no album cover image is found in the audio file, use a default image
             default_image_path = get_default_image()
-            image = Image.open(default_image_path)
+            image = Image.open(resource_path(default_image_path))
     except Exception as e:
         # If there's any error, use a default image from the music_thumbnails folder
         default_image_path = get_default_image()
-        image = Image.open(default_image_path)
+        image = Image.open(resource_path(default_image_path))
 
     # Resize the image to fit the widget
     image = image.resize((400, 400))
@@ -408,6 +427,13 @@ def get_default_image():
     return None
 
 # Function to fetch lyrics from the API
+"""
+API stands for Application Programming Interface. It is a set of rules, protocols, 
+and tools that allows different software applications to communicate with 
+each other. APIs define how different software components should interact, 
+enabling developers to access the functionality of another software 
+system or service without needing to understand its internal workings.
+"""
 def fetch_lyrics(artist, title):
     url = f"https://api.lyrics.ovh/v1/{artist}/{title}"
     try:
@@ -418,7 +444,7 @@ def fetch_lyrics(artist, title):
         return lyrics
     except(Exception, requests.exceptions.HTTPError, requests.exceptions.HTTPError) as e:
         # Handle other unexpected exceptions
-        # print(f"An error occurred: {e}")
+        # messagebox.showinfo(f"An error occurred: {e}")
         pass
     
 def show_lyrics():
@@ -442,6 +468,8 @@ def show_lyrics():
                 lyrics_widget.config(state=NORMAL)  # Enable editing state
                 lyrics_widget.delete("1.0", END)  # Clear previous content
                 lyrics_widget.insert(END, lyrics)  # Insert new lyrics
+                lyrics_widget.tag_configure("center", justify="center")  # Configure a tag for center justification
+                lyrics_widget.tag_add("center", "1.0", "end")  # Apply the "center" tag to the entire text
                 lyrics_widget.config(state=DISABLED, cursor="hand2")  # Disable editing state
             else:
                 # If lyrics are not found, display a message
@@ -455,28 +483,13 @@ def show_lyrics():
             lyrics_widget.delete("1.0", END)  # Clear previous content
             lyrics_widget.insert(END, "Rename song to 'artist - title' to help display the lyrics.")  # Display message
             lyrics_widget.config(state=DISABLED, cursor="hand2")  # Disable editing state
-    except IndexError:
-        # If there is an index error (e.g., no song selected), display a message
-        lyrics_widget.config(state=NORMAL)  # Enable editing state
-        lyrics_widget.delete("1.0", END)  # Clear previous content
-        lyrics_widget.insert(END, "No song selected.")  # Display "No song selected"
-        lyrics_widget.config(state=DISABLED, cursor="hand2")  # Disable editing state
-    except Exception as e:
+    except (IndexError, Exception) as e:
         # If there is any other exception, display the error message
         lyrics_widget.config(state=NORMAL)  # Enable editing state
         lyrics_widget.delete("1.0", END)  # Clear previous content
         lyrics_widget.insert(END, f"An error occurred: {str(e)}")  # Display the error message
         lyrics_widget.config(state=DISABLED, cursor="hand2")  # Disable editing state
 
-def slide(x):
-    try:
-        song = playlist_box.get(ACTIVE)
-        song_path = os.path.join(music_directory, f"{song}.mp3")
-        mixer.music.load(song_path)
-        mixer.music.play(loops=0, start=int(my_slider.get()))
-
-    except pygame.error as e:
-        pass
 
 
 """MR CROWN"""
@@ -593,7 +606,7 @@ pause_button = PhotoImage(file=resource_path("images/40x40/pause.png"))
 Button(main_screen, text="", compound=LEFT, image=pause_button, bd=0, fg= "white", bg="white", command=lambda: pause(paused)).place(x=290, y=460)
 
 play_button = PhotoImage(file=resource_path("images/40x40/play.png"))
-Button(main_screen, text="", compound=LEFT, image=play_button, bd=0, fg= "white", bg="white", command=lambda: playallfromcurrentsong).place(x=320, y=450)
+Button(main_screen, text="", compound=LEFT, image=play_button, bd=0, fg= "white", bg="white", command=playallfromcurrentsong).place(x=320, y=450)
 
 stop_button = PhotoImage(file=resource_path("images/40x40/stop.png"))
 Button(main_screen, text="", compound=LEFT, image=stop_button, bd=0, fg= "white", bg="white", command=stop).place(x=370, y=460)
@@ -620,6 +633,8 @@ time_status_bar1.place(x=290, y=420, anchor="center")
 #Volume nub
 volume_slider = customtkinter.CTkSlider(master=main_screen, from_=0, to=100, command=lambda value: [update_volume_and_label(value)], width=100, number_of_steps=100)
 volume_slider.place(x=582, y=460)
+# Set initial volume to 100
+volume_slider.set(100)
 
 volume_label = Label(main_screen, text="Volume: 100", font=("Helvetica", 7, "bold"), fg="black", bg="white")
 volume_label.place(x=602, y=475)
